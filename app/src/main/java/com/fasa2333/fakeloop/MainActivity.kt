@@ -270,7 +270,7 @@ class MainActivity : ComponentActivity() {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "觉得好用吗？别忘了在github上给我点个star支持下我哦⭐~",
+                    text = "觉得好用吗？别忘了戳这里前往 GitHub，给我点个 Star 支持下我哦⭐~",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clickable {
