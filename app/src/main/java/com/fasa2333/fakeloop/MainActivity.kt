@@ -172,8 +172,10 @@ class MainActivity : ComponentActivity() {
         savedTargetTime: Int = 400,
         savedRandomEnabled: Boolean = true
     ) {
-        var targetJumps by remember { mutableStateOf(savedTargetJumps) }
-        var targetTime by remember { mutableStateOf(savedTargetTime) }
+        var targetJumpsText by remember { mutableStateOf(savedTargetJumps.toString()) }
+        var targetTimeText by remember { mutableStateOf(savedTargetTime.toString()) }
+        var targetJumpsValid by remember { mutableStateOf(savedTargetJumps) }
+        var targetTimeValid by remember { mutableStateOf(savedTargetTime) }
         var randomEnabled by remember { mutableStateOf(savedRandomEnabled) }
         var isRunning by remember { mutableStateOf(false) }
         var remainingSeconds by remember { mutableStateOf(0) }
@@ -214,14 +216,23 @@ class MainActivity : ComponentActivity() {
 
             // 2. 目标跳数输入框
             OutlinedTextField(
-                value = targetJumps.toString(),
+                value = targetJumpsText,
                 onValueChange = { s ->
-                    val v = s.toIntOrNull() ?: 800
-                    val clamped = v.coerceIn(1..60000)
-                    targetJumps = clamped
-                    errorMessage = ""
-                    prefs.edit().putInt(KEY_TARGET_JUMPS, clamped).apply()
+                    targetJumpsText = s
+                    val v = s.toIntOrNull()
+                    if (v != null && v in 1..6553) {
+                        targetJumpsValid = v
+                        errorMessage = ""
+                        prefs.edit().putInt(KEY_TARGET_JUMPS, v).apply()
+                    } else {
+                        errorMessage = when {
+                            s.isEmpty() -> "输入不能为空"
+                            v == null -> "请输入有效的整数"
+                            else -> "请输入 1~6553 之间的数值"
+                        }
+                    }
                 },
+                isError = errorMessage.isNotEmpty(),
                 label = { Text("请输入目标跳数") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
@@ -229,14 +240,23 @@ class MainActivity : ComponentActivity() {
 
             // 3. 目标时间输入框
             OutlinedTextField(
-                value = targetTime.toString(),
+                value = targetTimeText,
                 onValueChange = { s ->
-                    val v = s.toIntOrNull() ?: 400
-                    val clamped = v.coerceIn(1..60000)
-                    targetTime = clamped
-                    errorMessage = ""
-                    prefs.edit().putInt(KEY_TARGET_TIME, clamped).apply()
+                    targetTimeText = s
+                    val v = s.toIntOrNull()
+                    if (v != null && v in 1..6553) {
+                        targetTimeValid = v
+                        errorMessage = ""
+                        prefs.edit().putInt(KEY_TARGET_TIME, v).apply()
+                    } else {
+                        errorMessage = when {
+                            s.isEmpty() -> "输入不能为空"
+                            v == null -> "请输入有效的整数"
+                            else -> "请输入 1~6553 之间的数值"
+                        }
+                    }
                 },
+                isError = errorMessage.isNotEmpty(),
                 label = { Text("请输入目标时间(秒)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
@@ -249,14 +269,8 @@ class MainActivity : ComponentActivity() {
 
             // 开始跳绳按钮
             Button(onClick = {
-                if (isRunning) return@Button
-
-                val jumps = targetJumps
-                val time = targetTime
-                if (jumps <= 0 || time <= 0) {
-                    errorMessage = "目标跳数和目标时间必须大于 0"
-                    return@Button
-                }
+                val jumps = targetJumpsValid
+                val time = targetTimeValid
 
                 isRunning = true
                 errorMessage = ""
@@ -315,7 +329,7 @@ class MainActivity : ComponentActivity() {
                     isRunning = false
                     prefs.edit().putInt(KEY_LAST_USED_TARGET_JUMPS, jumps).apply()
                 }
-            }, enabled = !isRunning) {
+            }, enabled = !isRunning && errorMessage.isEmpty()) {
                 Text(if (isRunning) "剩余 ${remainingSeconds} 秒" else "开始跳绳")
             }
 
