@@ -247,12 +247,7 @@ class MainActivity : ComponentActivity() {
                 Text(text = errorMessage, color = Color.Red, fontSize = 14.sp)
             }
 
-            // 4. 倒计时显示
-            if (isRunning) {
-                Text(text = "剩余 ${remainingSeconds} 秒", fontSize = 24.sp, color = Color.Red)
-            }
-
-            // 5. 开始跳绳按钮
+            // 开始跳绳按钮
             Button(onClick = {
                 if (isRunning) return@Button
 
@@ -298,7 +293,7 @@ class MainActivity : ComponentActivity() {
                     prefs.edit().putInt(KEY_LAST_USED_TARGET_JUMPS, jumps).apply()
                 }
             }, enabled = !isRunning) {
-                Text(if (isRunning) "跳绳中..." else "开始跳绳")
+                Text(if (isRunning) "剩余 ${remainingSeconds} 秒" else "开始跳绳")
             }
 
             // Footer
