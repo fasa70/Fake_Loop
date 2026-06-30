@@ -271,7 +271,23 @@ class MainActivity : ComponentActivity() {
                 remainingSeconds = remaining
 
                 scope.launch {
+                    // 初始随机延迟 375~425ms，错开整秒边界
+                    delay((375L..425L).random())
+                    val anchorTime = System.nanoTime()
+
+                    var iteration = 0
                     while (remaining > 0) {
+                        val cycleStartNanos = anchorTime + iteration * 1_000_000_000L
+
+                        // 在当前秒内的 375~425ms 窗口随机发包
+                        val sendOffsetNanos = (375L..425L).random() * 1_000_000L
+                        val sendPointNanos = cycleStartNanos + sendOffsetNanos
+
+                        var now = System.nanoTime()
+                        var waitNanos = sendPointNanos - now
+                        if (waitNanos > 0) delay(waitNanos / 1_000_000)
+
+                        // 计算增量并发送数据包
                         val remainingJumps = finalTarget - currentJumps
                         val baseInc = if (remaining > 0) remainingJumps / remaining else 0
                         val randInc = (0..2).random()
@@ -285,7 +301,14 @@ class MainActivity : ComponentActivity() {
 
                         remaining--
                         remainingSeconds = remaining
-                        delay(1000)
+
+                        // 等待到当前周期结束，补偿到恰好 1000ms
+                        val cycleEndNanos = cycleStartNanos + 1_000_000_000L
+                        now = System.nanoTime()
+                        waitNanos = cycleEndNanos - now
+                        if (waitNanos > 0) delay(waitNanos / 1_000_000)
+
+                        iteration++
                     }
 
                     // 结束
